@@ -1,0 +1,92 @@
+[project]
+name = "quran-llm"
+version = "0.1.0"
+description = "Transformer-based language model for Quran text generation"
+requires-python = ">=3.13"
+dependencies = [
+    "numpy>=2.0.0",
+    "torch>=2.9.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["model"]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
+    "ruff>=0.14.4",
+    "jupyter>=1.0.0",
+]
+
+[tool.ruff]
+exclude = [
+    "*.ipynb",
+    ".venv",
+    "__pycache__",
+    ".git",
+    ".mypy_cache",
+    "venv",
+]
+
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "A",    # flake8-builtins
+    "C4",   # flake8-comprehensions
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib
+    "SIM",  # flake8-simplify
+]
+
+ignore = [
+    "E501",    # Line too long (handled by formatter)
+    "D",       # All docstring checks
+    "ARG002",  # Unused method argument
+    "A003",    # Class attribute shadowing builtin
+    "SIM108",  # Use ternary operator
+]
+
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+length-sort = true
+length-sort-straight = false
+combine-as-imports = true
+split-on-trailing-comma = true
+
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = ["i", "j", "k", "B", "T", "C", "F"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true
+explicit_package_bases = true
+mypy_path = "."
+
+exclude = [
+    ".venv",
+    "__pycache__",
+]
