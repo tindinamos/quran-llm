@@ -1,33 +1,31 @@
-# Name Transcription
+# Quran Language Model
 
-A Python project for Quran Tokenization and Generation
+A transformer-based language model trained on Quran text for Arabic text generation.
 
-## Table of Contents
+## Overview
 
-- [Features](#features)
-- [Local Setup](#local-setup)
-- [Google Colab Setup](#google-colab-setup)
-- [Usage](#usage)
-- [Available Models](#available-models)
-- [Examples](#examples)
+This project implements a small transformer model (bigram-style architecture with multi-head attention) trained on Quranic Arabic text. The model uses character-level tokenization with Arabic diacritics support.
 
-## Features
+**Model Architecture:**
+- Transformer blocks with multi-head self-attention
+- Feed-forward layers with ReLU activation
+- Layer normalization
+- Positional embeddings
 
-- Support for multiple AI models (GPT and Gemini)
-- Batch processing of names
-- Model comparison capabilities
-- Few-shot learning support
-- Evaluation metrics (WER, CER)
-- CSV input/output support
+**Features:**
+- Custom tokenizer that groups Arabic letters with diacritical marks
+- Model checkpointing and resumption
+- Text generation from trained models
+- Checkpoint inspection
 
-## Local Setup
+## Setup
 
 ### Prerequisites
 
 - Python 3.13 or higher
-- [uv](https://docs.astral.sh/uv/) package manager (recommended) or pip
+- [uv](https://docs.astral.sh/uv/) package manager
 
-### Installation with uv (Recommended)
+### Installation
 
 1. **Clone the repository**
    ```bash
@@ -35,300 +33,211 @@ A Python project for Quran Tokenization and Generation
    cd quran
    ```
 
-2. **Install uv** (if not already installed)
-   ```bash
-   curl -LsSf https://astral.sh/uv/install.sh | sh
-   ```
-
-3. **Install dependencies**
+2. **Install dependencies**
    ```bash
    uv sync
    ```
 
-   This will:
-   - Create a virtual environment in `.venv`
-   - Install all required packages
-   - Install the project in editable mode
-
-4. **Set up API keys**
-
-   Create a `.env` file in the project root or export environment variables:
+3. **Activate virtual environment**
    ```bash
-   # For GPT models
-   export OPENAI_API_KEY="your-openai-api-key"
-
-   # For Gemini models
-   export GOOGLE_API_KEY="your-google-api-key"
-   ```
-
-5. **Run the project**
-   ```bash
-   # Using uv (automatically uses the virtual environment)
-   uv run python models/main.py --help
-
-   # Or activate the virtual environment manually
    source .venv/bin/activate
-   python models/main.py --help
    ```
-
-### Installation with pip
-
-If you prefer using pip:
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd quran
-   ```
-
-2. **Create and activate virtual environment**
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -e .
-   ```
-
-4. **Set up API keys** (same as above)
-
-## Google Colab Setup
-
-To use this project in Google Colab:
-
-### 1. Clone the Repository
-
-```python
-# Clone the repository
-!git clone <repository-url>
-%cd quran
-```
-
-### 2. Install Dependencies
-
-```python
-# Install the project and all dependencies
-!pip install -e .
-```
-
-### 3. Set API Keys
-
-```python
-# Option 1: Using Colab Secrets (Recommended)
-from google.colab import userdata
-import os
-
-# Set API keys from Colab secrets
-os.environ['OPENAI_API_KEY'] = userdata.get('OPENAI_API_KEY')
-os.environ['GOOGLE_API_KEY'] = userdata.get('GOOGLE_API_KEY')
-
-# To add secrets: Click the key icon in the left sidebar
-```
-
-```python
-# Option 2: Direct input (Less secure - don't share the notebook!)
-import os
-import getpass
-
-os.environ['OPENAI_API_KEY'] = getpass.getpass('Enter OpenAI API Key: ')
-os.environ['GOOGLE_API_KEY'] = getpass.getpass('Enter Google API Key: ')
-```
-
-### 4. Import and Use
-
-```python
-# Now you can import and use the modules
-from models.setup_engine import setup_engine
-
-# Example: Set up GPT engine
-transliterator, runner, evaluator = setup_engine("gpt", "4o-mini")
-
-# Transliterate a single name
-runner.run_single_name("محمد")
-```
-
-### Complete Colab Example
-
-```python
-# 1. Install
-!git clone <repository-url>
-%cd quran
-!pip install -e .
-
-# 2. Set up API keys
-import os
-from google.colab import userdata
-os.environ['OPENAI_API_KEY'] = userdata.get('OPENAI_API_KEY')
-os.environ['GOOGLE_API_KEY'] = userdata.get('GOOGLE_API_KEY')
-
-# 3. Use the model
-from models.setup_engine import setup_engine
-
-transliterator, runner, evaluator = setup_engine("gpt", "4o-mini")
-runner.run_single_name("أحمد")
-```
 
 ## Usage
 
-### Basic Commands
+### Training
 
-#### Transliterate a single name
-
-```bash
-uv run python models/main.py --engine gpt --model 4o-mini --name "محمد"
-```
-
-#### Run on a test set
+#### Train from scratch
 
 ```bash
-uv run python models/main.py --engine gpt --model 4o-mini --test-set simple --batch-size 4
+python main.py
 ```
 
-#### Run on a custom CSV file
+This will:
+- Load and tokenize the Quran text
+- Create a new model with default hyperparameters
+- Train for 100 iterations
+- Save checkpoint to `checkpoints/model.pt`
+
+#### Resume training from checkpoint
 
 ```bash
-uv run python models/main.py --engine gemini --model 2.5-flash --csv path/to/file.csv --batch-size 8
+python main.py --checkpoint checkpoints/model.pt
 ```
 
-#### Compare different batch sizes
+Loads the model and optimizer state and continues training.
+
+#### Custom checkpoint location
 
 ```bash
-uv run python models/main.py --engine gpt --model 4o-mini --test-set simple --compare 1 4 8 16
+python main.py --save-checkpoint models/my_model.pt
 ```
 
-#### Compare different models
+### Text Generation
+
+#### Generate from a trained model
 
 ```bash
-uv run python models/main.py --compare-models "gpt 4o-mini" "gemini 2.5-flash" --test-set simple
+python main.py --generate --checkpoint checkpoints/model.pt
 ```
 
-#### Use few-shot examples
+Generates 500 tokens of text using the trained model.
+
+#### Generate with custom length
 
 ```bash
-uv run python models/main.py --engine gpt --model 4o-mini --name "محمد" --use-fewshots CREATED_SHORT
+python main.py --generate --checkpoint checkpoints/model.pt --max-tokens 1000
 ```
 
-### Command Line Arguments
-
-- `--engine`: AI engine to use (`gpt` or `gemini`)
-- `--model`: Model version (see [Available Models](#available-models))
-- `--name`: Single Arabic name to transliterate
-- `--test-set`: Test set name (`simple`, `big`, `sample_test`, `nllb`, `mbart`, `nile`)
-- `--csv`: Path to CSV file with names
-- `--batch-size`: Number of names to process in one batch (default: 4)
-- `--compare`: List of batch sizes to compare
-- `--compare-models`: Compare multiple models
-- `--save-dir`: Directory to save results
-- `--use-fewshots`: Few-shot examples key
-- `--debugging`: Logging level (default: `output`)
-  - `detailed`: Show all logs (batch processing, evaluation metrics, progress bars)
-  - `output`: Show only final results and progress bars
-  - `none`: Silent mode (no output)
-
-## Available Models
-
-### GPT Models (OpenAI)
-
-- `4o-mini`: GPT-4o Mini (default settings)
-- `5-mini`: GPT-5 Mini
-- `3.5-turbo`: GPT-3.5 Turbo
-
-### Gemini Models (Google)
-
-- `2.5-flash`: Gemini 2.5 Flash (fast, balanced)
-- `2.5-flash-lite`: Gemini 2.5 Flash Lite (fastest)
-- `2.5-pro`: Gemini 2.5 Pro (most capable)
-
-### Test Sets
-
-- `simple`: Basic test set
-- `big`: Large test set
-- `sample_test`: Sample test data
-- `nllb`: NLLB model test data
-- `mbart`: mBART model test data
-- `nile`: NILE model test data
-
-## Examples
-
-### Example 1: Quick Single Name Test
+#### Generate from untrained model (random)
 
 ```bash
-uv run python models/main.py --engine gpt --model 4o-mini --name "فاطمة"
+python main.py --generate
 ```
 
-### Example 2: Batch Processing with Results Saving
+Creates a random model and generates text (useful for testing).
+
+### Checkpoint Inspection
+
+#### View checkpoint configuration
 
 ```bash
-uv run python models/main.py \
-  --engine gemini \
-  --model 2.5-flash \
-  --test-set big \
-  --batch-size 8 \
-  --save-dir ./results
+python main.py --config --checkpoint checkpoints/model.pt
 ```
 
-### Example 3: Model Comparison
+Displays:
+- Model configuration (vocab_size, n_embd, n_head, n_layer, etc.)
+- First 10 model layers with shapes
+- Total parameter count
+- Whether optimizer state is available
 
-```bash
-uv run python models/main.py \
-  --compare-models "gpt 4o-mini" "gpt 5-mini" "gemini 2.5-flash" \
-  --test-set simple \
-  --batch-size 4
+Example output:
+```
+=== Checkpoint Information ===
+
+Config:
+  vocab_size: 654
+  n_embd: 32
+  n_head: 2
+  n_layer: 2
+  block_size: 8
+  dropout: 0.2
+
+Model state dict keys:
+  token_embedding_table.weight: torch.Size([654, 32])
+  position_embedding_table.weight: torch.Size([8, 32])
+  ...
+
+Total parameters: 68,302
+
+Optimizer state available: True
 ```
 
-### Example 4: Batch Size Optimization
+## Command-Line Arguments
 
-```bash
-uv run python models/main.py \
-  --engine gpt \
-  --model 4o-mini \
-  --test-set simple \
-  --compare 1 2 4 8 16
-```
+### Common Arguments
 
-### Example 5: Running with Different Logging Levels
+- `--checkpoint PATH`: Path to checkpoint file to load
+- `--save-checkpoint PATH`: Where to save checkpoint (default: `checkpoints/model.pt`)
 
-```bash
-# Detailed logging (all batch processing and metrics)
-uv run python models/main.py \
-  --engine gemini \
-  --model 2.5-flash \
-  --test-set simple \
-  --debugging detailed
+### Mode Selection
 
-# Output only (just final results and progress bars, default)
-uv run python models/main.py \
-  --engine gpt \
-  --model 4o-mini \
-  --test-set simple \
-  --debugging output
+- `--generate`: Generate text instead of training
+- `--config`: Show checkpoint configuration and exit
 
-# Silent mode (no output)
-uv run python models/main.py \
-  --engine gpt \
-  --model 4o-mini \
-  --test-set simple \
-  --debugging none
-```
+### Generation Options
+
+- `--max-tokens N`: Number of tokens to generate (default: 500)
 
 ## Project Structure
 
 ```
 quran/
-├── models/           # Model implementations (GPT, Gemini, open-source)
-├── helpers/          # Helper utilities
-├── config/           # Configuration files
-├── data/             # Data files and test sets
-├── pyproject.toml    # Project dependencies
-└── README.md         # This file
+├── model/              # Model architecture
+│   ├── bigram.py      # Main model class
+│   ├── head.py        # Self-attention head
+│   ├── multi_head.py  # Multi-head attention
+│   ├── block.py       # Transformer block
+│   ├── feed_forward.py # Feed-forward layer
+│   └── config.py      # Model configuration
+├── trainer/            # Training logic
+│   ├── trainer.py     # Training loop
+│   └── data_splitter.py # Data splitting
+├── tokenization/       # Tokenizer
+│   └── one_letter_tokenizer.py # Character-level tokenizer with diacritics
+├── loader/             # Model persistence
+│   └── localfile.py   # Save/load checkpoints
+├── data/               # Training data
+│   └── quran-simple.txt # Quran text
+├── checkpoints/        # Saved models (gitignored)
+├── main.py            # Main entry point
+└── pyproject.toml     # Dependencies
 ```
+
+## Model Hyperparameters
+
+Default configuration (editable in `main.py`):
+
+- `vocab_size`: Determined by tokenizer (~654 tokens)
+- `n_embd`: 32 (embedding dimension)
+- `n_head`: 2 (number of attention heads)
+- `n_layer`: 2 (number of transformer blocks)
+- `block_size`: 8 (context window)
+- `dropout`: 0.2
+- `batch_size`: 4
+- `learning_rate`: 1e-3
+- `max_iters`: 100
+- `eval_interval`: 10
+
+## Examples
+
+### Complete training workflow
+
+```bash
+# 1. Train a model
+python main.py
+
+# 2. Check the saved model
+python main.py --config --checkpoint checkpoints/model.pt
+
+# 3. Generate text
+python main.py --generate --checkpoint checkpoints/model.pt
+
+# 4. Resume training for more iterations
+python main.py --checkpoint checkpoints/model.pt
+```
+
+### Quick generation test
+
+```bash
+# Generate from untrained model (will be gibberish)
+python main.py --generate --max-tokens 100
+```
+
+## Development
+
+### Code formatting
+
+```bash
+ruff check --fix .
+ruff format .
+```
+
+### Running tests
+
+The tokenizer includes a test mode:
+
+```bash
+python tokenization/one_letter_tokenizer.py
+```
+
+## Notes
+
+- The model currently runs on CPU (CUDA support available but requires CUDA toolkit)
+- Training data is the complete Quran text with verse numbering
+- Checkpoints are saved with model weights, optimizer state, and configuration
+- The tokenizer groups Arabic letters with diacritical marks as single tokens
 
 ## License
 
 [Add your license here]
-
-## Contributing
-
-[Add contribution guidelines here]
