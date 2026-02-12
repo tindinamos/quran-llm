@@ -8,6 +8,7 @@ from trainer.trainer import Trainer
 from loader.localfile import LocalFileModelLoader
 from trainer.data_splitter import UniformDataSplitter
 from tokenization.one_letter_tokenizer import OneLetterTokenizer
+from tokenization.byte_pair_encoding_tokenizer import BytePairEncodingTokenizer
 
 
 def main():
@@ -38,6 +39,13 @@ def main():
         "--config",
         action="store_true",
         help="Print checkpoint configuration and exit (requires --checkpoint)",
+    )
+    parser.add_argument(
+        "--tokenizer",
+        type=str,
+        choices=["oneletter", "bpe"],
+        default="oneletter",
+        help="Tokenizer to use: oneletter (character-level with diacritics) or bpe (byte-pair encoding)",
     )
     args = parser.parse_args()
 
@@ -79,7 +87,15 @@ def main():
     print("Reading and tokenizing data...")
     with open("data/quran-simple.txt", encoding="utf-8") as f:
         text = f.read()
-    tokenizer = OneLetterTokenizer(text)
+
+    # Initialize tokenizer based on argument
+    if args.tokenizer == "oneletter":
+        print("Using OneLetterTokenizer...")
+        tokenizer = OneLetterTokenizer(text)
+    elif args.tokenizer == "bpe":
+        print("Using BytePairEncodingTokenizer (building vocabulary)...")
+        tokenizer = BytePairEncodingTokenizer(text)
+
     print(f"Vocabulary size: {tokenizer.vocab_size}")
 
     # Load or create model

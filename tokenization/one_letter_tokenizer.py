@@ -1,9 +1,16 @@
-class OneLetterTokenizer:
+from tokenization.tokenizer import Tokenizer
+
+
+class OneLetterTokenizer(Tokenizer):
     def __init__(self, text):
         chars = sorted(set(expand_tokens(text)))
         self.char_to_idx = {ch: i for i, ch in enumerate(chars)}
         self.idx_to_char = dict(enumerate(chars))
-        self.vocab_size = len(chars)
+        self._vocab_size = len(chars)
+
+    @property
+    def vocab_size(self):
+        return self._vocab_size
 
     def encode(self, text):
         i = 0
