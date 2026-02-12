@@ -47,6 +47,11 @@ def main():
         default="oneletter",
         help="Tokenizer to use: oneletter (character-level with diacritics) or bpe (byte-pair encoding)",
     )
+    parser.add_argument(
+        "--tokenizer-limit",
+        type=int,
+        help="Limit the amount of text used for building tokenizer vocabulary (applies to BPE only)",
+    )
     args = parser.parse_args()
 
     # CONFIG MODE
@@ -93,8 +98,9 @@ def main():
         print("Using OneLetterTokenizer...")
         tokenizer = OneLetterTokenizer(text)
     elif args.tokenizer == "bpe":
-        print("Using BytePairEncodingTokenizer (building vocabulary)...")
-        tokenizer = BytePairEncodingTokenizer(text)
+        vocab_text = text[:args.tokenizer_limit] if args.tokenizer_limit else text
+        print(f"Using BytePairEncodingTokenizer (building vocabulary from {len(vocab_text)} chars)...")
+        tokenizer = BytePairEncodingTokenizer(vocab_text)
 
     print(f"Vocabulary size: {tokenizer.vocab_size}")
 
